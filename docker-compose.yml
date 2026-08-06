@@ -1,0 +1,24 @@
+services:
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: node server.js
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: torks_studio
+      POSTGRES_USER: torks
+      POSTGRES_PASSWORD: torks_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/banco.sql:/docker-entrypoint-initdb.d/banco.sql:ro
+volumes:
+  postgres_data:
