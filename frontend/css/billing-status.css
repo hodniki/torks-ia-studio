@@ -1,0 +1,17 @@
+.billing-warning {
+  border: 1px solid #8b6c2e;
+  background: #302712;
+  color: #ffd77b;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.billing-plans article.selected-plan {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px #11e5c622;
+}
+
+.plans-grid button {
+  width: 100%;
+  text-align: center;
+}

@@ -1,0 +1,11 @@
+{
+  "name": "torks-studio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm ci --prefix backend --omit=dev",
+    "start": "node backend/src/server.js",
+    "check": "npm run check --prefix backend"
+  },
+  "engines": { "node": ">=20" }
+}

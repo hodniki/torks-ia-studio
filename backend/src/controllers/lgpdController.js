@@ -1,0 +1,1 @@
+const User=require('../models/User');exports.exportData=async(req,res)=>{const data=Buffer.from(JSON.stringify(await User.exportData(req.userId),null,2));res.set({'Content-Type':'application/json; charset=utf-8','Content-Disposition':'attachment; filename="meus-dados-torks.json"','Content-Length':data.length,'Cache-Control':'private, no-store'});return res.send(data)};

@@ -1,0 +1,35 @@
+services:
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - ./frontend:/frontend:ro
+    command: npm start
+    ports: ["3000:3000"]
+    environment:
+      PORT: 3000
+      DATABASE_URL: mysql://torks:torks_local@database:3306/torks_studio
+      JWT_SECRET: desenvolvimento-local-torks-studio-32-caracteres
+      CORS_ORIGIN: "*"
+      DB_SSL: "false"
+    depends_on:
+      database: { condition: service_healthy }
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: torks_studio
+      MYSQL_USER: torks
+      MYSQL_PASSWORD: torks_local
+      MYSQL_ROOT_PASSWORD: root_local
+    ports: ["3307:3306"]
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql/init.mysql.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  mysql_data:

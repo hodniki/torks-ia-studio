@@ -1,0 +1,9 @@
+const db=require('../config/database'),crypto=require('node:crypto');
+class AuthorizedDevice{
+ static async create(userId,{userAgent,ipAddress}){const sessionId=crypto.randomUUID(),deviceName=this.name(userAgent),expiresAt=new Date(Date.now()+7*86400000);await db.query('INSERT INTO authorized_devices(id,user_id,session_id,device_name,user_agent,ip_address,expires_at)VALUES($1,$2,$3,$4,$5,$6,$7)',[db.uuid(),userId,sessionId,deviceName,userAgent||null,ipAddress||null,expiresAt]);return{sessionId,expiresAt}}
+ static name(ua=''){const browser=/Edg\//.test(ua)?'Edge':/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Navegador',system=/Windows/.test(ua)?'Windows':/Android/.test(ua)?'Android':/iPhone|iPad/.test(ua)?'iPhone/iPad':/Mac OS/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'Dispositivo';return`${browser} em ${system}`}
+ static async active(userId,sessionId){const{rowCount}=await db.query('UPDATE authorized_devices SET last_seen_at=NOW() WHERE user_id=$1 AND session_id=$2 AND revoked_at IS NULL AND expires_at>NOW()',[userId,sessionId]);return rowCount>0}
+ static async list(userId,current){const{rows}=await db.query(`SELECT id,session_id AS "sessionId",device_name AS "deviceName",ip_address AS "ipAddress",last_seen_at AS "lastSeenAt",expires_at AS "expiresAt",created_at AS "createdAt",revoked_at AS "revokedAt" FROM authorized_devices WHERE user_id=$1 ORDER BY last_seen_at DESC`,[userId]);return rows.map(r=>({...r,current:r.sessionId===current}))}
+ static async revoke(userId,id,current){const{rowCount}=await db.query('UPDATE authorized_devices SET revoked_at=NOW() WHERE user_id=$1 AND id=$2 AND session_id<>$3 AND revoked_at IS NULL',[userId,id,current||'00000000-0000-0000-0000-000000000000']);return rowCount>0}
+}
+module.exports=AuthorizedDevice;

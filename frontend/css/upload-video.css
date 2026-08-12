@@ -1,0 +1,8 @@
+.image-preview video {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+}
+.reference-result video{width:58px;height:58px;object-fit:cover;border-radius:7px}

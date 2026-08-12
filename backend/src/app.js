@@ -1,0 +1,53 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const db = require('./config/database');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const videoRoutes = require('./routes/videoRoutes');
+const templateRoutes = require('./routes/templateRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
+const socialAccountRoutes = require('./routes/socialAccountRoutes');
+const billingRoutes = require('./routes/billingRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const supportRoutes = require('./routes/supportRoutes');
+const crypto = require('node:crypto');
+const asyncHandler = require('./utils/asyncHandler');
+const errorHandler = require('./middleware/errorHandler');
+const ApiError = require('./utils/ApiError');
+const path = require('node:path');
+
+const app = express();
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5500,http://127.0.0.1:5500').split(',').map(value => value.trim());
+
+app.disable('x-powered-by');
+app.use((req,res,next)=>{req.requestId=crypto.randomUUID();res.setHeader('X-Request-ID',req.requestId);next()});
+app.use(helmet());
+app.use(cors({ origin(origin, callback) { if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true); return callback(new ApiError(403, 'Origem não permitida pelo CORS.')); } }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), { setHeaders: res => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin') }));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, limit: Number(process.env.RATE_LIMIT_MAX || 200), standardHeaders: 'draft-8', legacyHeaders: false }));
+
+app.get('/api/health', asyncHandler(async (_req, res) => { const { rows } = await db.checkConnection(); res.json({ status: 'ok', database: 'connected', timestamp: rows[0].now }); }));
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/videos', videoRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/schedules', scheduleRoutes);
+app.use('/api/social-accounts', socialAccountRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/support',supportRoutes);
+const frontendDirectory=path.resolve(__dirname,'../../frontend');
+app.use(express.static(frontendDirectory));
+app.get(/^(?!\/api(?:\/|$)).*/,(_req,res)=>res.sendFile(path.join(frontendDirectory,'index.html')));
+app.use((_req, res) => res.status(404).json({ error: 'Rota não encontrada.' }));
+app.use(errorHandler);
+
+module.exports = app;

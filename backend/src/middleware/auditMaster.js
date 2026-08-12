@@ -1,0 +1,2 @@
+const AuditLog=require('../models/AuditLog');
+module.exports=(req,res,next)=>{if(!['POST','PUT','PATCH','DELETE'].includes(req.method))return next();const started=Date.now();res.on('finish',()=>{const ip=String(req.ip||'').replace(/^::ffff:/,'');AuditLog.create({userId:req.userId,action:`master.${req.method.toLowerCase()}.${req.path.replace(/[^a-zA-Z0-9/_-]/g,'')}`,ipAddress:ip,details:{status:res.statusCode,durationMs:Date.now()-started,targetId:req.params?.id||null}}).catch(error=>console.error('Falha no registro de auditoria:',error.message))});next()};

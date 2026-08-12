@@ -1,0 +1,39 @@
+{
+  "name": "torks-studio-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API do Torks Studio",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "check": "node --check src/server.js",
+    "db:verify": "node scripts/verify-db.js",
+    "db:setup": "node scripts/setup-db.js",
+    "backup": "node scripts/backup-now.js",
+    "user:verify": "node scripts/verify-user-email.js",
+    "user:master": "node scripts/set-master-user.js",
+    "test:smoke": "node scripts/smoke-test.js",
+    "test:render": "node scripts/test-render.js",
+    "test:payment-idempotency": "node scripts/test-payment-idempotency.js",
+    "frontend:start": "node scripts/frontend-server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@andresaya/edge-tts": "^1.8.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "ffmpeg-static": "^5.2.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemailer": "9.0.5",
+    "mysql2": "^3.14.5"
+  }
+}

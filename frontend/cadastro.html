@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Criar conta - Torks Studio</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth">
+  <a class="brand" href="index.html">Torks<span>Studio</span></a>
+  <main class="auth-card">
+    <p class="eyebrow">COMECE GRÁTIS</p>
+    <h1>Crie sua conta</h1>
+    <p>Já tem uma conta? <a href="login.html">Entrar</a></p>
+    <form id="register-form">
+      <label>Nome<input type="text" name="name" placeholder="Seu nome" autocomplete="name" required></label>
+      <label>Telefone com DDD<input type="tel" name="phone" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel" minlength="10" maxlength="20" required></label>
+      <label>CPF<input type="text" name="cpf" placeholder="000.000.000-00" inputmode="numeric" minlength="11" maxlength="14" required></label>
+      <label>E-mail<input type="email" name="email" placeholder="voce@exemplo.com" autocomplete="email" required></label>
+      <label>Senha<input type="password" name="password" minlength="8" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" required></label>
+      <label class="check"><input type="checkbox" required> Concordo com os termos de uso.</label>
+      <button class="button" type="submit">Criar conta grátis</button>
+    </form>
+    <p class="message" id="message"></p>
+  </main>
+  <script src="js/auth.js"></script>
+</body>
+</html>

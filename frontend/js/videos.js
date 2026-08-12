@@ -1,0 +1,20 @@
+document.write('<script src="js/config.js"></script>');
+document.write('<script src="js/navigation.js"></script>');
+document.head.insertAdjacentHTML('beforeend','<link rel="stylesheet" href="css/navigation.css">');
+const api = window.TORKS_API_URL || 'http://localhost:3000/api';
+const token = localStorage.getItem('torksToken');
+if (!token) location.href = 'login.html';
+document.querySelector('main header .button').href = 'criar.html';
+const templatesLink = Array.from(document.querySelectorAll('.dash nav a')).find(link => link.textContent.trim() === 'Templates');
+if (templatesLink) templatesLink.href = 'templates.html';
+const schedulesLink = Array.from(document.querySelectorAll('.dash nav a')).find(link => ['Agendamentos','Publicações'].includes(link.textContent.trim()));
+if (schedulesLink) { schedulesLink.href = 'schedules.html'; schedulesLink.textContent = 'Publicações'; }
+const escapeHtml = value => String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+const statusLabel = value => ({ ready: 'Pronto', processing: 'Processando', failed: 'Falhou', draft: 'Rascunho' }[value] || value);
+const formatDuration = seconds => `${Math.floor((seconds || 0) / 60)}m ${String((seconds || 0) % 60).padStart(2, '0')}s`;
+async function apiFetch(path) { const response = await fetch(`${api}${path}`, { headers: { Authorization: `Bearer ${token}` } }); const data = await response.json(); if (response.status === 401) { localStorage.removeItem('torksToken'); location.href = 'login.html'; throw Error(data.error); } if (!response.ok) throw Error(data.error || 'Não foi possível carregar os vídeos.'); return data.data; }
+function showUser(user) { const initials = user.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase(); document.querySelector('.user').innerHTML = `${escapeHtml(initials)} <span><b>${escapeHtml(user.name)}</b><small>${escapeHtml(user.email)}</small></span>`; }
+function videoCard(video) { const prompt = video.metadata?.prompt || 'Vídeo criado no Torks Studio'; const updated = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(video.updatedAt)); return `<article class="video-card"><div class="video-thumb"><span>▶</span></div><div class="video-card-body"><span class="status">${escapeHtml(statusLabel(video.status))}</span><h3>${escapeHtml(video.title || 'Sem título')}</h3><p>${escapeHtml(prompt)}</p><small>${updated} · ${formatDuration(video.durationSeconds)}</small>${video.fileUrl ? `<a class="button" href="${escapeHtml(video.fileUrl)}" target="_blank" rel="noopener">Assistir</a>` : '<span class="video-waiting">Arquivo em preparação</span>'}</div></article>`; }
+async function loadVideos() { const grid = document.querySelector('#videos-grid'); try { const [user, videos] = await Promise.all([apiFetch('/users/me'), apiFetch('/videos')]); showUser(user); const totalSeconds = videos.reduce((sum, video) => sum + Number(video.durationSeconds || 0), 0); document.querySelector('#videos-total').textContent = videos.length; document.querySelector('#videos-processing').textContent = videos.filter(video => video.status === 'processing').length; document.querySelector('#videos-ready').textContent = videos.filter(video => video.status === 'ready').length; document.querySelector('#videos-duration').textContent = `${Math.floor(totalSeconds / 60)}m`; document.querySelector('.plan p').textContent = `${Math.ceil(totalSeconds / 60)} de 60 minutos utilizados.`; grid.innerHTML = videos.length ? videos.map(videoCard).join('') : '<div class="empty-videos"><b>Nenhum vídeo criado</b><p>Use a ferramenta de geração para começar sua biblioteca.</p><a class="button" href="index.html#teste">Criar primeiro vídeo</a></div>'; } catch (error) { grid.innerHTML = `<div class="empty-videos"><b>Não foi possível carregar</b><p>${escapeHtml(error.message)}</p></div>`; } }
+document.querySelector('#refresh-videos').onclick = loadVideos;
+loadVideos();

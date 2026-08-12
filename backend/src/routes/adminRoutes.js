@@ -1,0 +1,33 @@
+const router = require('express').Router();
+const controller = require('../controllers/adminController');
+const auth = require('../middleware/auth');
+const master = require('../middleware/master');
+const asyncHandler = require('../utils/asyncHandler');
+const operations = require('../controllers/operationsController');
+const auditMaster = require('../middleware/auditMaster');
+
+router.use(auth, asyncHandler(master));
+router.use(auditMaster);
+router.get('/overview', asyncHandler(controller.overview));
+router.get('/operations',asyncHandler(operations.list));
+router.put('/support/:id',asyncHandler(operations.updateTicket));
+router.put('/users/:id', asyncHandler(controller.updateUser));
+router.get('/finance', asyncHandler(controller.dashboard));
+router.get('/payments', asyncHandler(controller.payments));
+router.get('/reports', asyncHandler(controller.reports));
+router.get('/finance-analytics',asyncHandler(controller.financeAnalytics));
+router.get('/finance-export/:format',asyncHandler(controller.exportFinance));
+router.get('/cost-targets',asyncHandler(controller.costTargets));
+router.post('/costs',asyncHandler(controller.createCost));
+router.delete('/costs/:id',asyncHandler(controller.removeCost));
+router.post('/payments/:id/refund',asyncHandler(controller.refundPayment));
+router.get('/clients', asyncHandler(controller.clients));
+router.get('/payment-configuration', asyncHandler(controller.paymentConfiguration));
+router.post('/payment-configuration/test', asyncHandler(controller.testPaymentConfiguration));
+router.get('/system-configuration',asyncHandler(controller.systemConfiguration));
+router.get('/audit-logs',asyncHandler(controller.auditLogs));
+router.post('/system-configuration/test',asyncHandler(controller.testSystemConfiguration));
+router.post('/expenses', asyncHandler(controller.createExpense));
+router.delete('/expenses/:id', asyncHandler(controller.removeExpense));
+
+module.exports = router;

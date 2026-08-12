@@ -1,0 +1,4 @@
+require('dotenv').config();
+const db=require('../src/config/database');
+const tables=['users','projects','videos','templates','subscriptions','payments','logs','settings','schedules','social_accounts','authorized_devices','credit_transactions','subscription_plans','system_expenses','cost_entries','support_tickets','error_events'];
+(async()=>{await db.initSchema();const marks=tables.map(()=>'?').join(',');const{rows}=await db.query(`SELECT COUNT(*) AS count FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN(${marks})`,tables);console.log(`MySQL conectado. Tabelas encontradas: ${rows[0].count} de ${tables.length}.`);if(Number(rows[0].count)!==tables.length)process.exitCode=1})().catch(error=>{console.error(`Falha na verificação: ${error.message}`);process.exitCode=1}).finally(()=>db.close());
