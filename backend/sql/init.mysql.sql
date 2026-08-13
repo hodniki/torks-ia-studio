@@ -131,3 +131,12 @@ CREATE TABLE IF NOT EXISTS error_events (
   message TEXT NOT NULL, stack TEXT, ip_address VARCHAR(45), user_agent TEXT, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   INDEX error_events_created_idx(created_at), CONSTRAINT errors_user_fk FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS render_jobs (
+  id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, video_id CHAR(36) NOT NULL,
+  status ENUM('queued','processing','completed','failed') NOT NULL DEFAULT 'queued', attempts INT NOT NULL DEFAULT 0,
+  error_message TEXT, started_at DATETIME(3), finished_at DATETIME(3), created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  INDEX render_jobs_status_created_idx(status,created_at), INDEX render_jobs_user_video_idx(user_id,video_id),
+  CONSTRAINT render_jobs_user_fk FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT render_jobs_video_fk FOREIGN KEY(video_id) REFERENCES videos(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -1,6 +1,7 @@
 const videoService = require('../services/videoService');
 const Video = require('../models/Video');
-const renderService = require('../services/renderService');
+const RenderJob = require('../models/RenderJob');
+const ApiError = require('../utils/ApiError');
 
 exports.list = async (req, res) => res.json({ data: await Video.list(req.userId) });
 
@@ -22,7 +23,11 @@ exports.generate = async (req, res) => {
 };
 
 exports.render = async (req, res) => {
-  const publicBaseUrl = process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`;
-  const fileUrl = await renderService.render(req.userId, req.params.id, publicBaseUrl.replace(/\/$/, ''));
-  return res.json({ data: { id: req.params.id, status: 'ready', fileUrl } });
+  const video = await Video.findOwned(req.userId, req.params.id);
+  if (!video) throw new ApiError(404, 'Vídeo não encontrado.');
+  if (video.status === 'ready' && video.fileUrl) return res.json({ data: { id: video.id, status: 'completed', fileUrl: video.fileUrl } });
+  const job = await RenderJob.enqueue(req.userId, video.id);
+  return res.status(202).json({ data: { id: video.id, jobId: job.id, status: job.status } });
 };
+
+exports.renderStatus = async (req, res) => { const video = await Video.findOwned(req.userId, req.params.id); if (!video) throw new ApiError(404, 'Vídeo não encontrado.'); const job = await RenderJob.status(req.userId, video.id); return res.json({ data: { id: video.id, status: job?.status || video.status, errorMessage: job?.errorMessage || video.metadata?.renderError || null, fileUrl: video.fileUrl || null } }); };

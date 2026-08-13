@@ -13,5 +13,6 @@ router.post('/reference-image', uploadLimit, referenceUpload, asyncHandler(contr
 router.post('/reference-media', uploadLimit, referenceUpload, asyncHandler(controller.uploadReference));
 router.post('/generate', asyncHandler(controller.generate));
 router.post('/:id/render', renderLimit, asyncHandler(controller.render));
+router.get('/:id/render-status', asyncHandler(controller.renderStatus));
 
 module.exports = router;

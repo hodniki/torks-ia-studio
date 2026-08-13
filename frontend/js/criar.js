@@ -64,9 +64,18 @@ async function renderVideo(id, button) {
   button.textContent = 'Montando vídeo...';
   status.textContent = 'Gerando narração, mídia, legendas e MP4. Isso pode levar alguns minutos.';
   try {
-    const result = await apiFetch(`/videos/${id}/render`, { method: 'POST', body: '{}' });
-    status.innerHTML = `Vídeo concluído. <a href="${escapeHtml(result.fileUrl)}" target="_blank" rel="noopener">Assistir e baixar MP4</a>`;
-    button.textContent = 'MP4 pronto';
+    const queued = await apiFetch(`/videos/${id}/render`, { method: 'POST', body: '{}' });
+    if (queued.fileUrl) { status.innerHTML = `Vídeo concluído. <a href="${escapeHtml(queued.fileUrl)}" target="_blank" rel="noopener">Assistir e baixar MP4</a>`; button.textContent = 'MP4 pronto'; return; }
+    status.textContent = 'Vídeo adicionado à fila. Você pode fechar esta página e acompanhar em Meus vídeos.';
+    for (let attempt = 0; attempt < 240; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      const result = await apiFetch(`/videos/${id}/render-status`);
+      if (result.status === 'completed' && result.fileUrl) { status.innerHTML = `Vídeo concluído. <a href="${escapeHtml(result.fileUrl)}" target="_blank" rel="noopener">Assistir e baixar MP4</a>`; button.textContent = 'MP4 pronto'; return; }
+      if (result.status === 'failed') throw Error(result.errorMessage || 'A renderização falhou.');
+      status.textContent = result.status === 'processing' ? 'Renderizando narração, legendas e MP4…' : 'Aguardando na fila de renderização…';
+    }
+    status.textContent = 'A renderização continua em segundo plano. Consulte Meus vídeos.';
+    button.textContent = 'Acompanhar em Meus vídeos';
   } catch (error) {
     status.textContent = error.message;
     button.disabled = false;

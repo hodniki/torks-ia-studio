@@ -1,6 +1,13 @@
 const db = require('../config/database');
 
 class User {
+  static async synchronizeMaster(email) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!normalized) return false;
+    const result = await db.query("UPDATE users SET role='master' WHERE email=$1", [normalized]);
+    return result.rowCount > 0;
+  }
+
   static async findByEmail(email) {
     const { rows } = await db.query('SELECT id, name, phone, email, password_hash, email_verified_at, created_at FROM users WHERE email = $1', [email]);
     return rows[0] || null;

@@ -6,6 +6,7 @@ const ffmpeg=require('ffmpeg-static');
 const db=require('../config/database');
 const mp=require('./mercadoPagoService');
 const email=require('./emailService');
+const gemini=require('./geminiService');
 const uploads=path.join(__dirname,'../../uploads');
 const item=(id,label,status,detail,category)=>({id,label,status,detail,category});
 const run=(command,args)=>new Promise((resolve,reject)=>{const child=spawn(command,args,{windowsHide:true});let error='';child.stderr.on('data',chunk=>error+=chunk);child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error(error.slice(-300)||`Código ${code}`)));});
@@ -20,6 +21,7 @@ exports.status=()=>{
     item('jwt','Segurança de sessão',String(process.env.JWT_SECRET||'').length>=32?'ready':'error','Chave JWT com tamanho seguro','Segurança'),
     item('storage','Armazenamento de arquivos','ready','Diretório privado da aplicação','Sistema'),
     item('ffmpeg','Renderização FFmpeg',ffmpeg?'ready':'error',ffmpeg?'Executável instalado':'Executável ausente','Vídeo'),
+    item('gemini','IA de roteiro',gemini.isConfigured()?'ready':'pending',gemini.isConfigured()?'Gemini configurado':'Configure GEMINI_API_KEY','Vídeo'),
     item('smtp','Envio de e-mail',process.env.SMTP_HOST?'ready':'pending',process.env.SMTP_HOST?'SMTP configurado':'Pendente configurar SMTP','Integrações'),
     item('mercadoPago','Mercado Pago',mp.isConfigured()?'ready':'pending',mp.isConfigured()?'Credencial presente':'Pendente Access Token','Integrações'),
     item('social','Redes sociais',social?'ready':'pending',social?'Credenciais OAuth presentes':'OAuth de Instagram, TikTok e YouTube pendente','Integrações'),
